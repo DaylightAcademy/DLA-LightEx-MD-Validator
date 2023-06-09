@@ -1,0 +1,22 @@
+#! /bin/bash
+
+# Download the schema file(s) named in `schema` below, dereference any
+# internal/external schema references and use prettier to tidy the resulting
+# output.
+
+if [[ -n "$1" ]]
+then
+  branch="$1"
+else
+  branch="main"
+fi
+
+timestamp=$(date +%s)
+schema=(study)
+for i in ${schema[@]} ; do
+  echo "Updating $i.json"
+  curl --silent -H"If-None-Match: $timestamp" "https://raw.githubusercontent.com/cdsig/CDSIG-Schema/$branch/$i.json" > src/schema/original/$i.json
+  cat src/schema/original/$i.json | ./scripts/dereference-schema > src/schema/$i.json
+done
+
+npx prettier -w src/schema/*.json
